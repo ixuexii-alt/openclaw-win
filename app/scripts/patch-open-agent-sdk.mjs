@@ -428,11 +428,11 @@ if (patchedFiles > 0) {
 // ---------------------------------------------------------------------------
 {
   const platformFiles = [
-    'dist/utils/platform.js',
-    'dist/utils/platform.mjs',
+    'utils/platform.js',
+    'utils/platform.mjs',
   ]
   for (const relPath of platformFiles) {
-    const absPath = join(SDK_ROOT, relPath)
+    const absPath = join(root, relPath)
     if (!existsSync(absPath)) continue
     let src = readFileSync(absPath, 'utf-8')
     // Expand SUPPORTED_PLATFORMS to include 'windows' and 'linux'
@@ -457,11 +457,11 @@ if (patchedFiles > 0) {
 // ---------------------------------------------------------------------------
 {
   const entryFiles = [
-    'dist/index.js',
-    'dist/index.mjs',
+    'index.js',
+    'index.mjs',
   ]
   for (const relPath of entryFiles) {
-    const absPath = join(SDK_ROOT, relPath)
+    const absPath = join(root, relPath)
     if (!existsSync(absPath)) continue
     let src = readFileSync(absPath, 'utf-8')
     if (!src.includes('setShellIfWindows')) {
