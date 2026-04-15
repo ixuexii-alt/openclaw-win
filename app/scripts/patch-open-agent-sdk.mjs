@@ -58,7 +58,7 @@ const patches = [
 
 \${CYBER_RISK_INSTRUCTION}
 IMPORTANT: You must NEVER generate or guess URLs for the user unless you are confident that the URLs are for helping the user with programming. You may use URLs provided by the user in their messages or local files.`,
-        to: `You are OpenClaude, a versatile AI assistant with powerful coding tools. You help users with any task â coding, general knowledge, research, creative writing, analysis, recommendations, and more. \${outputStyleConfig !== null ? 'Follow your "Output Style" below, which describes how you should respond to user queries.' : ''} Use the instructions below and the tools available to you to assist the user. Always respond in the same language the user uses.
+        to: `You are OpenClaude, a versatile AI assistant with powerful coding tools. You help users with any task — coding, general knowledge, research, creative writing, analysis, recommendations, and more. \${outputStyleConfig !== null ? 'Follow your "Output Style" below, which describes how you should respond to user queries.' : ''} Use the instructions below and the tools available to you to assist the user. Always respond in the same language the user uses.
 
 \${CYBER_RISK_INSTRUCTION}
 You may provide well-known URLs when the user asks (official websites, documentation, etc.). Only decline if you genuinely do not know the URL.`,
@@ -155,7 +155,7 @@ You may provide well-known URLs when the user asks (official websites, documenta
                     if (parsed === null && contentBlock.input.length > 0) {
                         // TET/FC-v3 diagnostic: the streamed tool input JSON failed to
                         // parse. We fall back to {} which means downstream validation
-                        // sees empty input. The raw prefix goes to debug log only â no
+                        // sees empty input. The raw prefix goes to debug log only — no
                         // PII-tagged proto column exists for it yet.
                         logEvent('tengu_tool_input_json_parse_fail', {
                             toolName: sanitizeToolNameForAnalytics(contentBlock.name),
@@ -262,7 +262,7 @@ async function checkPermissionsAndCallTool(tool, toolUseID, input, toolUseContex
     replacements: [
       {
         from: `        // Size-under-5MB does not imply dimensions-under-cap. Don't return the
-        // raw buffer if the PNG header says it's oversized â fall through to
+        // raw buffer if the PNG header says it's oversized — fall through to
         // ImageResizeError instead. PNG sig is 8 bytes, IHDR dims at 16-24.
         const overDim = imageBuffer.length >= 24 &&
             imageBuffer[0] === 0x89 &&
@@ -282,7 +282,7 @@ async function checkPermissionsAndCallTool(tool, toolUseID, input, toolUseContex
         }
         // Image is too large and we failed to compress it - fail with user-friendly error
         throw new ImageResizeError(overDim
-            ? \`Unable to resize image â dimensions exceed the \${IMAGE_MAX_WIDTH}x\${IMAGE_MAX_HEIGHT}px limit and image processing failed. \` +
+            ? \`Unable to resize image — dimensions exceed the \${IMAGE_MAX_WIDTH}x\${IMAGE_MAX_HEIGHT}px limit and image processing failed. \` +
                 \`Please resize the image to reduce its pixel dimensions.\`
             : \`Unable to resize image (\${formatFileSize(originalSize)} raw, \${formatFileSize(base64Size)} base64). \` +
                 \`The image exceeds the 5MB API limit and compression failed. \` +

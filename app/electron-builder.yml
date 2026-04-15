@@ -1,20 +1,18 @@
-appId: com.openclawwin.app
-productName: OpenClaw-Win
+appId: com.openclaw.win
+productName: OpenClaw
 directories:
   buildResources: build
-npmRebuild: true
-nodeGypRebuild: false
-buildDependenciesFromSource: false
+  output: dist
 files:
-  - dist
-  - dist-electron
-  - package.json
-  - "!node_modules/@shipany/open-agent-sdk/src/**"
-  - "!node_modules/**/{test,tests,__tests__,docs,example,examples}/**"
-  - "!node_modules/**/*.{ts,tsx,map,md}"
-asar: true
-asarUnpack:
-  - "node_modules/@shipany/open-agent-sdk/**"
+  - "**/*"
+  - "!**/*.{ts,map}"
+mac:
+  icon: build/icon.icns
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
 win:
   icon: build/icon.ico
   target:
@@ -25,23 +23,12 @@ win:
     - target: portable
       arch:
         - x64
-  artifactName: "${productName}-${version}-${os}-${arch}.${ext}"
 nsis:
   oneClick: false
-  perMachine: false
   allowToChangeInstallationDirectory: true
-  deleteAppDataOnUninstall: false
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: OpenClaw-Win
-mac:
-  icon: build/icon.icns
-  target:
-    - target: dmg
-      arch:
-        - arm64
-        - x64
-  category: public.app-category.developer-tools
+  shortcutName: OpenClaw
 linux:
   icon: build/icon.png
   target:

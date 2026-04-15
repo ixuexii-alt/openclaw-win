@@ -3,36 +3,49 @@ import { dirname, join } from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
 
-let mainWindow: BrowserWindow | null = null
-
-// ---------------------------------------------------------------------------
-// Windows platform initialization
-// ---------------------------------------------------------------------------
+// === Windows Shell Auto-Detection ===
 if (process.platform === 'win32') {
-  // Ensure proper shell environment on Windows
-  if (!process.env.SHELL) {
-    // Try to find Git Bash
-    const gitBashPaths = [
-      'C:\\Program Files\\Git\\bin\\bash.exe',
-      'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
-      join(process.env.LOCALAPPDATA || '', 'Programs', 'Git', 'bin', 'bash.exe'),
-    ]
-    for (const p of gitBashPaths) {
-      if (fs.existsSync(p)) {
+  const { execSync } = require('child_process')
+  const gitBashPaths = [
+    'C:\\Program Files\\Git\\bin\\bash.exe',
+    'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
+    process.env.LOCALAPPDATA ? process.env.LOCALAPPDATA + '\\Programs\\Git\\bin\\bash.exe' : '',
+  ].filter(Boolean)
+
+  let shellFound = false
+  for (const p of gitBashPaths) {
+    try {
+      if (require('fs').existsSync(p)) {
         process.env.SHELL = p
-        console.log(`[win] Set SHELL to Git Bash: ${p}`)
+        console.log('[win] Set SHELL to Git Bash:', p)
+        shellFound = true
         break
       }
-    }
-    if (!process.env.SHELL) {
-      // Fallback to PowerShell
-      process.env.SHELL = 'powershell.exe'
-      console.log('[win] Set SHELL to PowerShell (Git Bash not found)')
-    }
+    } catch {}
   }
-  // Fix Windows long path support
+
+  if (!shellFound) {
+    try {
+      const psPath = execSync('where powershell.exe', { encoding: 'utf-8' }).trim().split('\n')[0]
+      if (psPath) {
+        process.env.SHELL = psPath
+        console.log('[win] Set SHELL to PowerShell:', psPath)
+        shellFound = true
+      }
+    } catch {}
+  }
+
+  if (!shellFound) {
+    process.env.SHELL = 'powershell.exe'
+    console.log('[win] Set SHELL to PowerShell (fallback)')
+  }
+
   process.env.GIT_DISCOVERY_ACROSS_FILESYSTEM = '1'
 }
+// === End Windows Shell Auto-Detection ===
+
+
+let mainWindow: BrowserWindow | null = null
 
 const APP_DATA_OVERRIDE = process.env.OPENCLAUDE_APPDATA_DIR?.trim()
 if (APP_DATA_OVERRIDE) {
@@ -594,10 +607,10 @@ function createWindow() {
     height: 760,
     minWidth: 640,
     minHeight: 480,
-    title: 'OpenClaw-Win',
+    title: 'OpenClaude',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
-    ...(process.platform === 'darwin' && { trafficLightPosition: { x: 16, y: 18 } }),
-    frame: process.platform !== 'darwin',
+      frame: process.platform !== 'darwin',
+    ...(process.platform === 'darwin' ? { trafficLightPosition: { x: 16, y: 18 } } : {}),
     backgroundColor: '#ffffff',
     icon: fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : undefined,
     webPreferences: {
