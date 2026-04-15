@@ -58,7 +58,7 @@ const patches = [
 
 \${CYBER_RISK_INSTRUCTION}
 IMPORTANT: You must NEVER generate or guess URLs for the user unless you are confident that the URLs are for helping the user with programming. You may use URLs provided by the user in their messages or local files.`,
-        to: `You are OpenClaude, a versatile AI assistant with powerful coding tools. You help users with any task — coding, general knowledge, research, creative writing, analysis, recommendations, and more. \${outputStyleConfig !== null ? 'Follow your "Output Style" below, which describes how you should respond to user queries.' : ''} Use the instructions below and the tools available to you to assist the user. Always respond in the same language the user uses.
+        to: `You are OpenClaude, a versatile AI assistant with powerful coding tools. You help users with any task â coding, general knowledge, research, creative writing, analysis, recommendations, and more. \${outputStyleConfig !== null ? 'Follow your "Output Style" below, which describes how you should respond to user queries.' : ''} Use the instructions below and the tools available to you to assist the user. Always respond in the same language the user uses.
 
 \${CYBER_RISK_INSTRUCTION}
 You may provide well-known URLs when the user asks (official websites, documentation, etc.). Only decline if you genuinely do not know the URL.`,
@@ -155,7 +155,7 @@ You may provide well-known URLs when the user asks (official websites, documenta
                     if (parsed === null && contentBlock.input.length > 0) {
                         // TET/FC-v3 diagnostic: the streamed tool input JSON failed to
                         // parse. We fall back to {} which means downstream validation
-                        // sees empty input. The raw prefix goes to debug log only — no
+                        // sees empty input. The raw prefix goes to debug log only â no
                         // PII-tagged proto column exists for it yet.
                         logEvent('tengu_tool_input_json_parse_fail', {
                             toolName: sanitizeToolNameForAnalytics(contentBlock.name),
@@ -262,7 +262,7 @@ async function checkPermissionsAndCallTool(tool, toolUseID, input, toolUseContex
     replacements: [
       {
         from: `        // Size-under-5MB does not imply dimensions-under-cap. Don't return the
-        // raw buffer if the PNG header says it's oversized — fall through to
+        // raw buffer if the PNG header says it's oversized â fall through to
         // ImageResizeError instead. PNG sig is 8 bytes, IHDR dims at 16-24.
         const overDim = imageBuffer.length >= 24 &&
             imageBuffer[0] === 0x89 &&
@@ -282,7 +282,7 @@ async function checkPermissionsAndCallTool(tool, toolUseID, input, toolUseContex
         }
         // Image is too large and we failed to compress it - fail with user-friendly error
         throw new ImageResizeError(overDim
-            ? \`Unable to resize image — dimensions exceed the \${IMAGE_MAX_WIDTH}x\${IMAGE_MAX_HEIGHT}px limit and image processing failed. \` +
+            ? \`Unable to resize image â dimensions exceed the \${IMAGE_MAX_WIDTH}x\${IMAGE_MAX_HEIGHT}px limit and image processing failed. \` +
                 \`Please resize the image to reduce its pixel dimensions.\`
             : \`Unable to resize image (\${formatFileSize(originalSize)} raw, \${formatFileSize(base64Size)} base64). \` +
                 \`The image exceeds the 5MB API limit and compression failed. \` +
@@ -421,63 +421,4 @@ if (patchedFiles > 0) {
   console.log(`[patch-open-agent-sdk] patched ${patchedFiles} files`)
 } else {
   console.log('[patch-open-agent-sdk] no changes needed')
-}
-
-// ---------------------------------------------------------------------------
-// Patch 99: Add Windows to SUPPORTED_PLATFORMS
-// ---------------------------------------------------------------------------
-{
-  const platformFiles = [
-    'utils/platform.js',
-    'utils/platform.mjs',
-  ]
-  for (const relPath of platformFiles) {
-    const absPath = join(root, relPath)
-    if (!existsSync(absPath)) continue
-    let src = readFileSync(absPath, 'utf-8')
-    // Expand SUPPORTED_PLATFORMS to include 'windows' and 'linux'
-    if (src.includes("SUPPORTED_PLATFORMS") && !src.includes("'windows'")) {
-      src = src.replace(
-        /SUPPORTED_PLATFORMS\s*=\s*\[([^\]]*?)\]/g,
-        (match, inner) => {
-          const platforms = inner.split(',').map(s => s.trim()).filter(Boolean)
-          if (!platforms.includes("'windows'")) platforms.push("'windows'")
-          if (!platforms.includes("'linux'")) platforms.push("'linux'")
-          return `SUPPORTED_PLATFORMS = [${platforms.join(', ')}]`
-        }
-      )
-      writeFileSync(absPath, src)
-      console.log(`  ✅ Added windows/linux to SUPPORTED_PLATFORMS in ${relPath}`)
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Patch 100: Ensure setShellIfWindows is called on startup
-// ---------------------------------------------------------------------------
-{
-  const entryFiles = [
-    'index.js',
-    'index.mjs',
-  ]
-  for (const relPath of entryFiles) {
-    const absPath = join(root, relPath)
-    if (!existsSync(absPath)) continue
-    let src = readFileSync(absPath, 'utf-8')
-    if (!src.includes('setShellIfWindows')) {
-      // Add Windows shell setup at the top of the module
-      const windowsShellSetup = `
-// [openclaw-win] Auto-setup Windows shell environment
-if (typeof process !== 'undefined' && process.platform === 'win32') {
-  try {
-    const { setShellIfWindows } = await import('./utils/windowsPaths.js');
-    if (typeof setShellIfWindows === 'function') setShellIfWindows();
-  } catch (e) { /* windowsPaths not available */ }
-}
-`
-      src = windowsShellSetup + src
-      writeFileSync(absPath, src)
-      console.log(`  ✅ Added setShellIfWindows call in ${relPath}`)
-    }
-  }
 }

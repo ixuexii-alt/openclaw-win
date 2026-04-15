@@ -12,6 +12,16 @@
 // Initialize global variables (MACRO, Bun, Gates) before anything else
 import './setup-globals.js'
 
+// [openclaw-win] Auto-setup Windows shell environment
+import { getPlatform } from './utils/platform.js'
+if (getPlatform() === 'windows') {
+  try {
+    const { setShellIfWindows } = await import('./utils/windowsPaths.js')
+    if (typeof setShellIfWindows === 'function') setShellIfWindows()
+  } catch (_e) { /* windowsPaths not available */ }
+}
+
+
 // Re-export all public types from the official SDK type surface
 export * from './entrypoints/agentSdkTypes.js'
 

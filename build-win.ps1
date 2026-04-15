@@ -1,46 +1,44 @@
-# OpenClaw-Win Windows Build Script
+# OpenClaw-Win Build Script for Windows
 # Usage: powershell -ExecutionPolicy Bypass -File build-win.ps1
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "🔨 OpenClaw-Win Windows Build" -ForegroundColor Cyan
-Write-Host "================================" -ForegroundColor Cyan
+Write-Host "=== OpenClaw-Win Windows Build ===" -ForegroundColor Cyan
 
-# Check Node.js
+# Check prerequisites
+Write-Host "`n[1/5] Checking prerequisites..." -ForegroundColor Yellow
 $nodeVersion = node --version 2>$null
 if (-not $nodeVersion) {
-    Write-Host "❌ Node.js not found. Install from https://nodejs.org/" -ForegroundColor Red
+    Write-Host "ERROR: Node.js is not installed. Download from https://nodejs.org" -ForegroundColor Red
     exit 1
 }
-Write-Host "✅ Node.js $nodeVersion" -ForegroundColor Green
+Write-Host "  Node.js: $nodeVersion" -ForegroundColor Green
 
-# Check Git
-$gitVersion = git --version 2>$null
-if (-not $gitVersion) {
-    Write-Host "⚠️  Git not found. Install from https://git-scm.com/downloads/win" -ForegroundColor Yellow
-    Write-Host "   Git Bash is strongly recommended for full tool compatibility." -ForegroundColor Yellow
-}
-else {
-    Write-Host "✅ $gitVersion" -ForegroundColor Green
-}
+$npmVersion = npm --version 2>$null
+Write-Host "  npm: $npmVersion" -ForegroundColor Green
 
-# Navigate to app directory
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$appDir = Join-Path $scriptDir "app"
-if (-not (Test-Path $appDir)) {
-    $appDir = $scriptDir
+# Build SDK first
+Write-Host "`n[2/5] Building open-agent-sdk..." -ForegroundColor Yellow
+Push-Location "$PSScriptRoot/open-agent-sdk"
+if (-not (Test-Path "node_modules")) {
+    npm install
 }
-Set-Location $appDir
+npm run build
+Pop-Location
 
-# Install dependencies
-Write-Host "`n📦 Installing dependencies..." -ForegroundColor Cyan
+# Install app dependencies
+Write-Host "`n[3/5] Installing app dependencies..." -ForegroundColor Yellow
+Push-Location "$PSScriptRoot/app"
 npm install
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-# Build
-Write-Host "`n🏗️  Building..." -ForegroundColor Cyan
+# Run patches
+Write-Host "`n[4/5] Applying SDK patches..." -ForegroundColor Yellow
+node scripts/patch-open-agent-sdk.mjs
+
+# Build Windows package
+Write-Host "`n[5/5] Building Windows package..." -ForegroundColor Yellow
 npm run package:win
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "`n✅ Build complete! Check the 'release' folder." -ForegroundColor Green
-Write-Host "   Installer: release/*.exe" -ForegroundColor White
+Write-Host "`n=== Build complete! ===" -ForegroundColor Green
+Write-Host "Output: app/dist/" -ForegroundColor Cyan
+Pop-Location
