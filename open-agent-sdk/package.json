@@ -13,7 +13,7 @@
     "url": "https://github.com/shipany-ai/open-agent-sdk/issues"
   },
   "version": "0.1.7",
-  "description": "Open-source Agent SDK inspired by @anthropic-ai/claude-agent-sdk. Runs the agent loop in-process — no local CLI required. Deploy anywhere: cloud, serverless, Docker, CI/CD.",
+  "description": "Open-source Agent SDK inspired by @anthropic-ai/claude-agent-sdk. Runs the agent loop in-process — no local CLI required.",
   "type": "module",
   "main": "./dist/sdk.js",
   "types": "./dist/sdk.d.ts",
@@ -58,7 +58,6 @@
     "@opentelemetry/sdk-metrics": "^2.6.1",
     "@opentelemetry/sdk-trace-base": "^2.6.1",
     "@opentelemetry/semantic-conventions": "^1.40.0",
-    "@shipany/open-agent-sdk": "^0.1.4",
     "ajv": "^8.17.0",
     "asciichart": "^1.5.25",
     "auto-bind": "^5.0.1",

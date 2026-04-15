@@ -3,11 +3,61 @@
  * Creates stub/shim packages for optional dependencies that are not available.
  * These are Anthropic-internal packages, cloud SDKs, native addons, etc.
  * Run automatically after npm install via postinstall hook.
+ * 
+ * Windows-compatible: handles both direct install and "file:" link scenarios.
  */
-import { mkdirSync, writeFileSync, existsSync } from 'fs'
-import { join } from 'path'
+import { mkdirSync, writeFileSync, existsSync, realpathSync } from 'fs'
+import { join, resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-const nodeModules = join(import.meta.dirname, '..', 'node_modules')
+// Resolve the correct node_modules directory.
+// When installed via "file:../open-agent-sdk", npm may symlink this package
+// into the consumer's node_modules. import.meta.dirname follows the real path,
+// so we need to walk up and find the nearest node_modules that actually exists.
+const __dirname = typeof import.meta.dirname !== 'undefined'
+  ? import.meta.dirname
+  : dirname(fileURLToPath(import.meta.url))
+
+function findNodeModules() {
+  // Strategy 1: Check if we're inside a node_modules/@shipany/open-agent-sdk/scripts/
+  // This happens when npm installs us (either from registry or via file: link)
+  const scriptDir = resolve(__dirname)
+  const parts = scriptDir.split(/[\\/]/)
+
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (parts[i] === 'node_modules') {
+      const nmDir = parts.slice(0, i + 1).join(require('path').sep || '/')
+      if (existsSync(nmDir)) {
+        return nmDir
+      }
+    }
+  }
+
+  // Strategy 2: We're running from the SDK source directory directly
+  // (e.g., open-agent-sdk/scripts/create-shims.mjs)
+  // Look for node_modules in the SDK root
+  const sdkRoot = resolve(__dirname, '..')
+  const localNm = join(sdkRoot, 'node_modules')
+  if (existsSync(localNm)) {
+    return localNm
+  }
+
+  // Strategy 3: Check if there's a consuming app's node_modules
+  // (when running via npm lifecycle from the consumer)
+  if (process.env.INIT_CWD) {
+    const consumerNm = join(process.env.INIT_CWD, 'node_modules')
+    if (existsSync(consumerNm)) {
+      return consumerNm
+    }
+  }
+
+  // Fallback: create node_modules next to the SDK
+  mkdirSync(localNm, { recursive: true })
+  return localNm
+}
+
+const nodeModules = findNodeModules()
+console.log(`[create-shims] Using node_modules at: ${nodeModules}`)
 
 const noop = 'function noop() {}'
 const noopAsync = 'async function noopAsync() {}'
@@ -144,7 +194,7 @@ export default {};
 
 let created = 0
 for (const [pkg, source] of Object.entries(shims)) {
-  const dir = join(nodeModules, pkg)
+  const dir = join(nodeModules, ...pkg.split('/'))
   if (existsSync(join(dir, 'package.json'))) continue
   mkdirSync(dir, { recursive: true })
   writeFileSync(
@@ -164,5 +214,7 @@ for (const [pkg, source] of Object.entries(shims)) {
   created++
 }
 if (created > 0) {
-  console.log(`Created ${created} shim packages for optional dependencies`)
+  console.log(`[create-shims] Created ${created} shim packages for optional dependencies`)
+} else {
+  console.log(`[create-shims] All shim packages already exist`)
 }

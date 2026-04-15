@@ -20,7 +20,7 @@
     "package:all": "npm run build && node --max-old-space-size=8192 ./node_modules/.bin/electron-builder --win --mac --linux"
   },
   "dependencies": {
-    "@shipany/open-agent-sdk": "^0.1.7",
+    "@shipany/open-agent-sdk": "file:../open-agent-sdk",
     "@streamdown/cjk": "^1.0.3",
     "@streamdown/code": "^1.1.1",
     "@streamdown/math": "^1.0.2",
