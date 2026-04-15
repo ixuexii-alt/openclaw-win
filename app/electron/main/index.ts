@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage, Menu } from 'electron'
 import { dirname, join } from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
@@ -610,6 +610,7 @@ function createWindow() {
     title: 'OpenClaude',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
       frame: process.platform !== 'darwin',
+    autoHideMenuBar: process.platform !== 'darwin',
     ...(process.platform === 'darwin' ? { trafficLightPosition: { x: 16, y: 18 } } : {}),
     backgroundColor: '#ffffff',
     icon: fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : undefined,
@@ -641,6 +642,10 @@ function createWindow() {
 // ---------------------------------------------------------------------------
 
 app.whenReady().then(() => {
+  // Hide menu bar on Windows/Linux
+  if (process.platform !== 'darwin') {
+    Menu.setApplicationMenu(null)
+  }
   registerIPC()
   createWindow()
 
